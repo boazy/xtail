@@ -1,11 +1,11 @@
 {
-    "name": "frontail",
-    "version": "0.3.1",
+    "name": "xtail",
+    "version": "0.1.0",
     "description": "tail -F output in browser",
-    "homepage": "https://github.com/mthenw/frontail",
+    "homepage": "https://github.com/boazy/xtail",
     "author": {
-        "name": "Maciej Winnicki",
-        "email": "maciej.winnicki@gmail.com"
+        "name": "Boaz Yaniv",
+        "email": "boazy@agatsolutions.com"
     },
     "license": "MIT",
     "bin": {
@@ -16,11 +16,12 @@
         "socket.io": "0.9.13",
         "connect": "2.7.3",
         "validator": "0.4.24",
-        "daemon": "1.0.0"
+        "daemon": "1.0.0",
+        "prelude-ls": "0.6.0"
     },
     "repository": {
         "type": "git",
-        "url": "http://github.com/mthenw/frontail.git"
+        "url": "http://github.com/boazy/xtail.git"
     },
     "keywords": [
         "tail",
