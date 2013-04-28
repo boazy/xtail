@@ -9,15 +9,17 @@
     },
     "license": "MIT",
     "bin": {
-        "frontail": "./bin/frontail"
+        "xtail": "./bin/xtail"
     },
     "dependencies": {
-        "commander": "1.1.1",
-        "socket.io": "0.9.13",
-        "connect": "2.7.3",
-        "validator": "0.4.24",
+        "LiveScript": "1.1.x",
+        "commander": "1.1.x",
+        "socket.io": "0.9.x",
+        "express": "3.x",
+        "asset-rack": "2.1.x",
+        "validator": "0.4.x",
         "daemon": "1.0.0",
-        "prelude-ls": "0.6.0"
+        "prelude-ls": "0.6.x"
     },
     "repository": {
         "type": "git",

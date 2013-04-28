@@ -1,8 +1,9 @@
 require! http
 require! fs
-require! connect
+require! express
 require! child_process.spawn
 require! daemon
+require! LiveScript
 require! validator.sanitize
 require! 'prelude-ls'.concat
 socketio = require 'socket.io'
@@ -47,16 +48,41 @@ if program.daemonize
   fs.writeFileSync program.pidPath, proc.pid
 else
   # Server setup
-  app = connect!
-    ..use connect.static __dirname + '/assets'
-    ..use (req, res) ->
-      fs.readFile __dirname + '/index.html', (err, data) ->
-        if err
-          res.writeHead 500, {'Content-Type': 'text/plain'}
-          res.end 'Interal error'
-        else
-          res.writeHead 200, {'Content-Type': 'text/html'}
-          res.end ((data.toString 'utf-8').replace //__TITLE__//g, 'tail -F ' + files.join ' '), 'utf-8'
+
+  # Read index html and replace title
+  err, data <~ fs.readFile __dirname + '/index.html'
+  throw err if err
+  index-html = data.toString('utf-8').replace //__TITLE__//g, 'tail -F ' + files.join ' '
+
+  rack = require('asset-rack')
+  assets = new rack.Rack do
+    * new rack.Asset do
+        url: '/tail'
+        contents: index-html
+        mimetype: 'text/html'
+      new rack.DynamicAssets do
+        type: rack.LessAsset
+        urlPrefix: '/css'
+        dirname: __dirname + '/assets/css'
+      new rack.DynamicAssets do
+        type: rack.BrowserifyAsset
+        urlPrefix: '/js'
+        dirname: __dirname + '/assets/js'
+        options:
+          #compress: true
+          extensionHandlers:
+            * ext: 'ls'
+              handler: (body, filename) ->
+                try
+                  LiveScript.compile body, { filename, bare: true }
+                catch
+                  w.emit 'syntaxError', e
+            ...
+
+  app = express!
+    ..use assets
+    ..get '/', (req, res) ->
+      res.redirect '/tail'
 
   server = (http.createServer app).listen program.port
   io = socketio.listen server, {log: false}
