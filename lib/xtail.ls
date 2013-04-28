@@ -7,6 +7,8 @@ require! validator.sanitize
 require! 'prelude-ls'.concat
 socketio = require 'socket.io'
 
+require! './tail'
+
 camelCase = (flag) -> 
   flag.split '-' .reduce (str, word) ->
     str + word.0.toUpperCase! + word.slice 1
@@ -16,7 +18,6 @@ program = require 'commander'
   ..version (require '../package.json').version
   ..usage '[options] [file ...]'
   ..option '-p, --port <port>', 'server port, default 9001', Number, 9001
-  ..option '-n, --number <number>', 'starting lines number, default 10', Number, 10
   ..option '-l, --lines <number>', 'number on lines stored in browser, default 2000', Number, 2000
   ..option '-d, --daemonize', 'run as daemon'
   ..option '--pid-path <path>', 'if run as deamon file that will store the process ID, default /var/run/frontail.pid', String, '/var/run/frontail.pid'
@@ -47,8 +48,8 @@ if program.daemonize
 else
   # Server setup
   app = connect!
-    .use connect.static(__dirname + '/assets')
-    .use (req, res) ->
+    ..use connect.static __dirname + '/assets'
+    ..use (req, res) ->
       fs.readFile __dirname + '/index.html', (err, data) ->
         if err
           res.writeHead 500, {'Content-Type': 'text/plain'}
@@ -61,13 +62,9 @@ else
   io = socketio.listen server, {log: false}
   io.sockets.on 'connection', (socket) ->
     socket.emit 'options:lines', program.lines
-    tail = spawn 'tail', ['-n', program.number].concat files
-    tail.stdout.on 'data', (data) ->
-      lines = (sanitize data.toString 'utf-8').xss!.split '\n'
-      lines.pop!
+    tailer = new tail.Tailer files[0]
+    tailer.on 'lines', (lines) ->
+      lines = [sanitize(line).xss! for line in lines]
       socket.emit 'lines', lines
-  tail = spawn 'tail', ['-F'].concat files
-  tail.stdout.on 'data', (data) ->
-    lines = (sanitize data.toString 'utf-8').xss!.split '\n'
-    lines.pop!
-    io.sockets.emit 'lines', lines
+    tailer.start!
+
