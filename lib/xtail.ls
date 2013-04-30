@@ -74,10 +74,7 @@ else
           extensionHandlers:
             * ext: 'ls'
               handler: (body, filename) ->
-                try
-                  LiveScript.compile body, { filename, bare: true }
-                catch
-                  w.emit 'syntaxError', e
+                LiveScript.compile body, { filename, bare: true }
             ...
 
   app = express!
@@ -88,7 +85,8 @@ else
   server = (http.createServer app).listen program.port
   io = socketio.listen server, {log: false}
   io.sockets.on 'connection', (socket) ->
-    socket.emit 'options:lines', program.lines
+    socket.emit 'options' do
+      lines: program.lines
     parser = new AgileParser
       ..on 'record', (record) ->
         socket.emit 'lines', [record.timestamp + ' - ' + record.fields.Message]
