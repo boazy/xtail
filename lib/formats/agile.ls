@@ -13,11 +13,11 @@ class AgileParser extends events.EventEmitter
     @field-names = null
     @delimiter = \\t
 
-  parse-comment: (line) ->
+  parse-comment: !(line) ->
     format = format-spec-regex.exec line ?.1 ?.split @delimiter
     @field-names = format if format
 
-  parse-lines: (lines) ->
+  parse-lines: !(lines) ->
     for line in lines
       if line.0 == '#'
         # This line is a comment

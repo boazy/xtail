@@ -6,7 +6,7 @@ class Tailer extends events.EventEmitter
     @watcher = null
     @last-line = ''
 
-  start: ~>
+  start: !->
     if not @watcher
       err, @old-stats <~ fs.stat @filename
       throw err if err
@@ -18,12 +18,12 @@ class Tailer extends events.EventEmitter
           @changed @old-stats.size, stats.size
           @old-stats = stats
 
-  stop: ~>
+  stop: !->
     if @watcher
       @watcher.close!
       @watcher = null
 
-  changed: (start, end) ~>
+  changed: !(start, end) ->
     stream = fs.createReadStream @filename, start: start, end: end, encoding: @encoding
     stream.on 'error', (err) ->
       console.log "Tail encountered error while reading from file: #{err}"
