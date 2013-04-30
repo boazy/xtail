@@ -62,7 +62,7 @@ else
         contents: index-html
         mimetype: 'text/html'
       new rack.DynamicAssets do
-        type: rack.LessAsset
+        type: rack.StylusAsset
         urlPrefix: '/css'
         dirname: __dirname + '/assets/css'
       new rack.DynamicAssets do
