@@ -10,7 +10,7 @@ filter-input-box = null
 filter-value = ''
 
 options =
-  lines = Math.Infinity
+  lines: Math.Infinity
 
 # Hides element if doesn't contain filter value
 filter-element = (element) ->
@@ -47,7 +47,7 @@ write-to-log = (data) ->
   div.appendChild p
   filter-element div
   log-container.appendChild div
-  log-container.removeChild log-container.children.0 if log-container.children.length > lines-emit
+  log-container.removeChild log-container.children.0 if log-container.children.length > options.lines
   if wasScrolledBottom then window.scrollTo 0, document.body.scrollHeight
 
 # DOM ready handler
