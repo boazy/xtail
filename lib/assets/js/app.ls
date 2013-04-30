@@ -1,3 +1,6 @@
+require! jquery
+$ = jquery
+
 const KEY_ESC = 27
 
 socket = null

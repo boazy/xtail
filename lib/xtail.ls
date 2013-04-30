@@ -1,12 +1,15 @@
-require! http
-require! fs
-require! express
+require! browserify
 require! child_process.spawn
 require! daemon
+require! express
+require! fs
+require! http
 require! LiveScript
 require! validator.sanitize
 require! 'prelude-ls'.concat
 socketio = require 'socket.io'
+browserify-shim = require 'browserify-shim'
+{BrowserifyAsset} = require './utils/browserify'
 
 require! './tail'
 AgileParser = require('./formats/agile')
@@ -66,16 +69,18 @@ else
         urlPrefix: '/css'
         dirname: __dirname + '/assets/css'
       new rack.DynamicAssets do
-        type: rack.BrowserifyAsset
+        type: BrowserifyAsset
         urlPrefix: '/js'
         dirname: __dirname + '/assets/js'
         options:
           #compress: true
-          extensionHandlers:
-            * ext: 'ls'
-              handler: (body, filename) ->
-                LiveScript.compile body, { filename, bare: true }
-            ...
+          transforms: [ \liveify ]
+          create: ->
+            browserify-shim do
+              browserify!
+              jquery:
+                path: './vendor/jquery.js'
+                exports: '$'
 
   app = express!
     ..use assets
