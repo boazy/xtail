@@ -9,6 +9,7 @@ require! 'prelude-ls'.concat
 socketio = require 'socket.io'
 
 require! './tail'
+AgileParser = require('./formats/agile')
 
 camelCase = (flag) -> 
   flag.split '-' .reduce (str, word) ->
@@ -16,14 +17,14 @@ camelCase = (flag) ->
 
 # Parse arguments
 program = require 'commander'
-  ..version (require '../package.json').version
-  ..usage '[options] [file ...]'
-  ..option '-p, --port <port>', 'server port, default 9001', Number, 9001
-  ..option '-l, --lines <number>', 'number on lines stored in browser, default 2000', Number, 2000
-  ..option '-d, --daemonize', 'run as daemon'
-  ..option '--pid-path <path>', 'if run as deamon file that will store the process ID, default /var/run/frontail.pid', String, '/var/run/frontail.pid'
-  ..option '--log-path <path>', 'if run as deamon file that will be used as a log, default /dev/null', String, '/dev/null'
-  ..parse process.argv
+  .version (require '../package.json').version
+  .usage '[options] [file ...]'
+  .option '-p, --port <port>', 'server port, default 9001', Number, 9001
+  .option '-l, --lines <number>', 'number on lines stored in browser, default 2000', Number, 2000
+  .option '-d, --daemonize', 'run as daemon'
+  .option '--pid-path <path>', 'if run as deamon file that will store the process ID, default /var/run/frontail.pid', String, '/var/run/frontail.pid'
+  .option '--log-path <path>', 'if run as deamon file that will be used as a log, default /dev/null', String, '/dev/null'
+  .parse process.argv
 
 if program.args.length is 0
   console.error 'Arguments needed, use --help'
@@ -88,9 +89,11 @@ else
   io = socketio.listen server, {log: false}
   io.sockets.on 'connection', (socket) ->
     socket.emit 'options:lines', program.lines
+    parser = new AgileParser
+      ..on 'record', (record) ->
+        socket.emit 'lines', [record.timestamp + ' - ' + record.fields.Message]
     tailer = new tail.Tailer files[0]
-    tailer.on 'lines', (lines) ->
-      lines = [sanitize(line).xss! for line in lines]
-      socket.emit 'lines', lines
+      ..on 'lines', (lines) ->
+        parser.parse-lines lines
     tailer.start!
 
