@@ -81,6 +81,10 @@ else
               jquery:
                 path: './vendor/jquery.js'
                 exports: '$'
+              'jquery.datatables':
+                path: './vendor/jquery.datatables.js'
+                exports: null
+                depends: { jquery: 'jQuery' }
 
   app = express!
     ..use assets

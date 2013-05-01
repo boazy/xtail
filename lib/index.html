@@ -8,9 +8,10 @@
 <body>
     <div class="navbar">
         <span class="brand">__TITLE__</span>
-        <input type="text" class="query" placeholder="Filter" tabindex="1">
+        <input type="text" id="filter-input" placeholder="Filter">
     </div>
-    <pre class="log"></pre>
+    <!--<pre class="log"></pre>-->
+    <table cellpadding="0" cellspacing="0" border="0" class="display" id="log"></table>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/app.js"></script>
 </body>

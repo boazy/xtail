@@ -26,7 +26,8 @@ body
   font-size 20px
   font-weight 200
   padding 8px 50px
-  .query
+  
+  #filter-input
     background-color #626262
     border-color #151515
     border-radius 14px 14px 14px 14px
@@ -54,13 +55,47 @@ body
   box-shadow 0 0 3px rgba(0, 0, 0, 0.15)
   outline 0
 
-.log
-  white-space pre-wrap
-  .inner-line
-    padding 0 50px
-    margin-left 96pt
-    text-indent -96pt
-  .line
-    &.selected
-      background-color pink
+// .log
+//   white-space pre-wrap
+//   .inner-line
+//     padding 0 50px
+//     margin-left 96pt
+//     text-indent -96pt
+//   .line
+//     &.selected
+//       background-color pink
 
+
+table.display thead th {
+  padding: 3px 18px 3px 10px;
+  border-bottom: 1px solid black;
+  font-weight: bold;
+  cursor: pointer;
+  * cursor: hand;
+}
+
+table.display tfoot th {
+  padding: 3px 18px 3px 10px;
+  border-top: 1px solid black;
+  font-weight: bold;
+}
+
+table.display tr.heading2 td {
+  border-bottom: 1px solid #aaa;
+}
+
+table.display td {
+  padding: 3px 10px;
+}
+
+table.display td.center {
+  text-align: center;
+}
+
+table.display tr.odd {
+  background-color: #E2E4FF;
+}
+
+table.display tr.even {
+  background-color: white;
+}
