@@ -96,9 +96,15 @@ else
   io.sockets.on 'connection', (socket) ->
     socket.emit 'options' do
       lines: program.lines
+
+    fields = []
     parser = new AgileParser
+      ..on 'format', (new_fields) ->
+        if fields != new_fields
+          fields = new_fields
+          socket.emit 'format', fields
       ..on 'record', (record) ->
-        socket.emit 'lines', [record.timestamp + ' - ' + record.fields.Message]
+        socket.emit 'record', record
     tailer = new tail.Tailer files[0]
       ..on 'lines', (lines) ->
         parser.parse-lines lines

@@ -4,33 +4,8 @@ require 'jquery.datatables'
 const KEY_ESC   = 27
 const KEY_SLASH = 191
 
-socket = null
-
-# HTML DOM elements
-log-container = null
-filter-input-box = null
-
-# Current filter value
-filter-value = ''
-
 options =
   lines: Math.Infinity
-
-# Hides element if doesn't contain filter value
-filter-element = !(element) ->
-  pattern = new RegExp filter-value, 'i'
-  if pattern.test element.textContent then element.style.display = '' else element.style.display = 'none'
-
-# Filter all log lines based on `filter-value`
-filter-logs = !->
-  log-table.fnFilter filter-value
-  # collection = log-container.childNodes
-  # i = collection.length
-  # return if i == 0
-  # while i
-  #   filter-element collection[i - 1]
-  #   i -= 1
-  # window.scrollTo 0, document.body.scrollHeight
 
 # Is page is scrolled to bottom
 scorlled-bottom = ->
@@ -55,31 +30,15 @@ write-to-log = !(data) ->
   log-container.removeChild log-container.children.0 if log-container.children.length > options.lines
   if wasScrolledBottom then window.scrollTo 0, document.body.scrollHeight
 
-# DOM ready handler
-# $ !->
-#   socket := new io.connect
-
-#   socket.on 'options', !(new-options) -> 
-#     options <<< new-options
-
-#   # Handle new lines sent by server
-#   socket.on 'lines', !(lines) ->
-#     for line in lines
-#       write-to-log line
-
-#   log-container := (document.getElementsByClassName 'log').0
-#   filter-input-box := (document.getElementsByClassName 'query').0
-#   filter-input-box.focus!
-#   filter-input-box.addEventListener 'keyup', !(e) ->
-#     if e.keyCode is KEY_ESC
-#       @value = ''
-#       filter-value := ''
-#     else
-#       filter-value := @value
-#     filter-logs!
+just_once = (callback) ->
+  called = false
+  !(...) ->
+    if not called
+      called = true
+      callback ...
 
 $ document .ready !->
-  table = $ \#log .dataTable do
+  table-options =
     bPaginate: false
     bLengthChange: false
     bFilter: true
@@ -87,33 +46,33 @@ $ document .ready !->
     bInfo: false
     bAutoWidth: false
     sDom: \t
-    aaData:
-        [ "Trident", "Internet Explorer 4.0", "Win 95+", 4, "X" ]
-        [ "Trident", "Internet Explorer 5.0", "Win 95+", 5, "C" ]
-        [ "Trident", "Internet Explorer 5.5", "Win 95+", 5.5, "A" ]
-        [ "Trident", "Internet Explorer 6.0", "Win 98+", 6, "A" ]
-        [ "Trident", "Internet Explorer 7.0", "Win XP SP2+", 7, "A" ]
-        [ "Gecko", "Firefox 1.5", "Win 98+ / OSX.2+", 1.8, "A" ]
-        [ "Gecko", "Firefox 2", "Win 98+ / OSX.2+", 1.8, "A" ]
-        [ "Gecko", "Firefox 3", "Win 2k+ / OSX.3+", 1.9, "A" ]
-        [ "Webkit", "Safari 1.2", "OSX.3", 125.5, "A" ]
-        [ "Webkit", "Safari 1.3", "OSX.3", 312.8, "A" ]
-        [ "Webkit", "Safari 2.0", "OSX.4+", 419.3, "A" ]
-        [ "Webkit", "Safari 3.0", "OSX.4+", 522.1, "A" ]
+    aaData: []
     aoColumns:
-        * sTitle: "Engine"
-        * sTitle: "Browser"
-        * sTitle: "Platform"
-        * sTitle: "Version"
-          sClass: "center"
-        * sTitle: "Grade"
-          sClass: "center"
+      * sTitle: 'Timestamp'
+      * sTitle: 'Message'
 
-  rows = []
-  for i from 1 to 1000
-    rows.push ["Blink", "Chrome #{i}", "Ubuntu 99.99", i, "A"]
+  table-html = $ \#log .html!
+  table = null
+  reset-table = !->
+    table-div = $ \#log
+    if (table-div.children!.length > 0)
+      table-div.empty!
+    table-div.append table-html
+    table := $ \#log-table .dataTable table-options
+  reset-table!
 
-  table.fnAddData rows
+  socket = new io.connect
+    ..on 'options', !(new-options) ->
+      options <<< new-options
+
+    ..on 'format', just_once !(columns) ->
+      columns = ['Timestamp'] ++ columns
+      table-options.aoColumns = [{sTitle: name} for name in columns]
+      reset-table!
+      $ \#log .show!
+
+    ..on 'record', !(record) ->
+      table.fnAddData [[record.timestamp] ++ record.fields]
 
   filter-input = $ \#filter-input
 
@@ -122,10 +81,8 @@ $ document .ready !->
       if event.key-code == KEY_SLASH
         filter-input.focus!
         event.prevent-default!
-      
 
   filter-input.keyup (event) ->
       if event.key-code == KEY_ESC
         @value = ''
       table.fnFilter @value
-
